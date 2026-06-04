@@ -10,7 +10,7 @@ async function readJsonBody(request) {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
 
-  const rawBody = Buffer.concat(chunks).toString("utf8");
+  const rawBody = Buffer.concat(chunks).toString("utf8").replace(/^\uFEFF/, "");
   return rawBody ? JSON.parse(rawBody) : {};
 }
 
