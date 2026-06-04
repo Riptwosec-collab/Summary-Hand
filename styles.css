@@ -1,0 +1,289 @@
+:root {
+  --grid: #e2e2e2;
+  --grid-dark: #c7c7c7;
+  --row-header: #f4f4f4;
+  --link-col: #bfe8e7;
+  --total: #ffd96c;
+  --blue: #4d82d8;
+  --red: #e85f5d;
+  --yellow: #f3c21b;
+  --green: #37a85b;
+  --purple: #d09ad7;
+  --cyan: #52c4c9;
+  --orange: #ffb21d;
+  --text: #111;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow: hidden;
+  color: var(--text);
+  background: #f7f7f7;
+  font-family: "Noto Sans Thai", Tahoma, Arial, sans-serif;
+  font-size: 12px;
+}
+
+.sheet-app {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 42px;
+  height: 100vh;
+  background: white;
+}
+
+.sheet-frame {
+  min-height: 0;
+  border-top: 1px solid var(--grid-dark);
+  background: white;
+}
+
+.sheet-scroll {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.assessment-table {
+  min-width: 1390px;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+th,
+td {
+  height: 19px;
+  padding: 0 6px;
+  border-right: 1px solid var(--grid);
+  border-bottom: 1px solid var(--grid);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  line-height: 18px;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 22px;
+  font-weight: 700;
+  color: #111;
+}
+
+.corner,
+.row-num {
+  width: 40px;
+  color: #2f4858;
+  background: var(--row-header);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.row-num {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+thead .corner {
+  z-index: 3;
+}
+
+.name-col {
+  width: 76px;
+  text-align: left;
+}
+
+.url-col {
+  width: 162px;
+  background: var(--link-col);
+  text-align: left;
+}
+
+.count-col {
+  width: 124px;
+  background: var(--link-col);
+}
+
+.metric-col {
+  width: 90px;
+}
+
+.empty-col {
+  width: 96px;
+  background: white;
+}
+
+.head-link,
+.head-count {
+  background: var(--link-col);
+}
+
+.h-moment-1 {
+  background: var(--blue);
+}
+
+.h-moment-2,
+.h-enter {
+  background: var(--red);
+}
+
+.h-moment-3,
+.h-no-tool,
+.h-total {
+  background: var(--yellow);
+}
+
+.h-moment-4 {
+  background: var(--green);
+}
+
+.h-moment-5 {
+  background: var(--purple);
+}
+
+.h-alcohol {
+  background: #83afe8;
+}
+
+.h-complete {
+  background: var(--cyan);
+}
+
+.h-incomplete {
+  background: #ffcf88;
+}
+
+a {
+  color: #06f;
+  text-decoration: underline;
+}
+
+.pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 108px;
+  height: 15px;
+  padding: 0 20px 1px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  line-height: 14px;
+}
+
+.pill::after {
+  content: "";
+  position: absolute;
+  right: 9px;
+  top: 6px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  opacity: 0.8;
+}
+
+.pill.blue {
+  color: #186298;
+  background: #b8ddf5;
+}
+
+.pill.green {
+  color: #2b7a32;
+  background: #cfe8bd;
+}
+
+.pill.purple {
+  color: #7c448f;
+  background: #e1c3ef;
+}
+
+.pill.red {
+  color: #bd3a31;
+  background: #ffd0c8;
+}
+
+.pill.black {
+  color: #f6f6f6;
+  background: #454545;
+}
+
+.total-row td {
+  height: 20px;
+  background: var(--total);
+  border-color: #f2c951;
+  font-weight: 600;
+}
+
+.total-row .row-num,
+.total-row .url-col {
+  background: white;
+  border-color: var(--grid);
+}
+
+.total-label {
+  text-align: center;
+}
+
+.selected-cell {
+  outline: 2px solid #3367ff;
+  outline-offset: -2px;
+}
+
+.month-tabs {
+  display: flex;
+  align-items: end;
+  gap: 2px;
+  overflow-x: auto;
+  padding: 5px 10px 0 45px;
+  border-top: 1px solid var(--grid-dark);
+  background: #eeeeee;
+}
+
+.month-tab {
+  min-width: 92px;
+  height: 33px;
+  padding: 0 16px;
+  border: 1px solid #cfcfcf;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: #e2e2e2;
+  color: #303030;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.month-tab.active {
+  height: 37px;
+  background: white;
+  color: #0b57d0;
+  border-color: #bdbdbd;
+  box-shadow: inset 0 3px 0 #0b57d0;
+}
+
+@media (max-width: 720px) {
+  body {
+    font-size: 11px;
+  }
+
+  .assessment-table {
+    min-width: 1240px;
+  }
+
+  .month-tabs {
+    padding-left: 8px;
+  }
+
+  .month-tab {
+    min-width: 78px;
+    padding: 0 10px;
+  }
+}
