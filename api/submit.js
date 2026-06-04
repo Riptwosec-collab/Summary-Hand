@@ -3,7 +3,7 @@ const { randomUUID } = require("crypto");
 
 async function readJsonBody(request) {
   if (request.body && typeof request.body === "object") return request.body;
-  if (typeof request.body === "string") return JSON.parse(request.body);
+  if (typeof request.body === "string") return JSON.parse(request.body.replace(/^\uFEFF/, ""));
 
   const chunks = [];
   for await (const chunk of request) {
