@@ -54,7 +54,7 @@ function normalizeSubmission(body) {
   };
 }
 
-module.exports = async function handler(request, response) {
+async function handler(request, response) {
   const headers = corsHeaders();
 
   if (request.method === "OPTIONS") {
@@ -77,4 +77,11 @@ module.exports = async function handler(request, response) {
   } catch (error) {
     return jsonResponse(response, 400, { ok: false, error: error.message }, headers);
   }
+}
+
+module.exports = handler;
+module.exports.config = {
+  api: {
+    bodyParser: false,
+  },
 };
