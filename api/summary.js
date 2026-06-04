@@ -1,5 +1,18 @@
 const { corsHeaders, jsonResponse, readSubmissions } = require("./_githubStore");
 
+async function readJsonBody(request) {
+  if (request.body && typeof request.body === "object") return request.body;
+  if (typeof request.body === "string") return JSON.parse(request.body);
+
+  const chunks = [];
+  for await (const chunk of request) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+
+  const rawBody = Buffer.concat(chunks).toString("utf8");
+  return rawBody ? JSON.parse(rawBody) : {};
+}
+
 const staffNames = [
   "คุณอนัตยา",
   "คุณพัชรพร",
@@ -38,13 +51,13 @@ const staffNames = [
   "คุณสุพัตรา ระ",
 ];
 
-function assertAdmin(request) {
+function assertAdmin(request, body) {
   const configuredPassword = process.env.ADMIN_PASSWORD;
   if (!configuredPassword) {
     throw new Error("Missing ADMIN_PASSWORD");
   }
 
-  const password = request.headers["x-admin-password"] || request.body?.password;
+  const password = request.headers["x-admin-password"] || body?.password;
   if (password !== configuredPassword) {
     const error = new Error("Unauthorized");
     error.statusCode = 401;
@@ -136,10 +149,11 @@ module.exports = async function handler(request, response) {
   }
 
   try {
-    assertAdmin(request);
+    const body = await readJsonBody(request);
+    assertAdmin(request, body);
     const { submissions } = await readSubmissions();
-    const month = Number(request.body?.month) || new Date().getMonth() + 1;
-    const year = Number(request.body?.year) || new Date().getFullYear();
+    const month = Number(body?.month) || new Date().getMonth() + 1;
+    const year = Number(body?.year) || new Date().getFullYear();
     return jsonResponse(response, 200, { ok: true, ...aggregate(submissions, month, year) }, headers);
   } catch (error) {
     return jsonResponse(response, error.statusCode || 500, { ok: false, error: error.message }, headers);

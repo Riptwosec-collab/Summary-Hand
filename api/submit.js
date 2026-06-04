@@ -1,6 +1,19 @@
 const { appendSubmission, corsHeaders, jsonResponse } = require("./_githubStore");
 const { randomUUID } = require("crypto");
 
+async function readJsonBody(request) {
+  if (request.body && typeof request.body === "object") return request.body;
+  if (typeof request.body === "string") return JSON.parse(request.body);
+
+  const chunks = [];
+  for await (const chunk of request) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+
+  const rawBody = Buffer.concat(chunks).toString("utf8");
+  return rawBody ? JSON.parse(rawBody) : {};
+}
+
 function normalizeMoment(moment) {
   return {
     moment: Number(moment.moment),
@@ -57,7 +70,8 @@ module.exports = async function handler(request, response) {
   }
 
   try {
-    const submission = normalizeSubmission(request.body || {});
+    const body = await readJsonBody(request);
+    const submission = normalizeSubmission(body);
     const count = await appendSubmission(submission);
     return jsonResponse(response, 200, { ok: true, id: submission.id, count }, headers);
   } catch (error) {
