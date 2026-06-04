@@ -160,9 +160,26 @@ thead .corner {
   background: #ffcf88;
 }
 
-a {
+.link-text {
   color: #06f;
   text-decoration: underline;
+}
+
+.editable-cell {
+  cursor: text;
+  user-select: text;
+}
+
+.editable-cell:focus {
+  position: relative;
+  z-index: 4;
+  outline: 2px solid #3367ff;
+  outline-offset: -2px;
+  background-clip: padding-box;
+}
+
+.pill.editable-cell:focus {
+  outline-offset: 1px;
 }
 
 .pill {

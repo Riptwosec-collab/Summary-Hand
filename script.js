@@ -154,6 +154,17 @@ const tableBody = document.querySelector("#tableBody");
 const monthTabs = document.querySelector("#monthTabs");
 
 let activeMonth = 0;
+const STORAGE_KEY = "summary-hand-editable-sheet-v1";
+
+const headerTitles = columns.map((column) => column.title);
+const savedState = loadSavedState();
+const sheetData = savedState?.sheetData ?? createDefaultSheets();
+
+if (savedState?.headerTitles?.length === headerTitles.length) {
+  savedState.headerTitles.forEach((title, index) => {
+    headerTitles[index] = title;
+  });
+}
 
 function shortCode(index, monthIndex) {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -174,6 +185,105 @@ function monthAdjustedValue(value, rowIndex, colIndex, monthIndex) {
   return Number((value + (monthIndex % 3 === 0 ? 0.1 : 0)).toFixed(1));
 }
 
+function createDefaultSheets() {
+  return months.map((_, monthIndex) => ({
+    names: [...names],
+    links: names.map((__, rowIndex) => `https://shorturl.asia/${shortCode(rowIndex, monthIndex)}`),
+    statuses: statusCycle.map((status) => ({ ...status })),
+    rows: baseRows.map((row, rowIndex) =>
+      row.map((value, colIndex) => monthAdjustedValue(value, rowIndex, colIndex, monthIndex)),
+    ),
+    blankRow: columns.map(() => ""),
+    totals: [...totals],
+    totalLabel: "Total",
+    totalUrl: "",
+    totalCount: "",
+  }));
+}
+
+function loadSavedState() {
+  if (typeof localStorage === "undefined") return null;
+  try {
+    const rawState = localStorage.getItem(STORAGE_KEY);
+    return rawState ? JSON.parse(rawState) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSheetData() {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ headerTitles, sheetData }));
+}
+
+function setEditable(element, onSave) {
+  element.contentEditable = "true";
+  element.spellcheck = false;
+  element.tabIndex = 0;
+  element.classList.add("editable-cell");
+  element.addEventListener("focus", () => {
+    element.dataset.beforeEdit = element.textContent;
+  });
+  element.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      element.blur();
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      element.textContent = element.dataset.beforeEdit ?? element.textContent;
+      element.blur();
+    }
+  });
+  element.addEventListener("input", () => {
+    onSave(element.textContent.trim());
+    saveSheetData();
+  });
+  element.addEventListener("blur", () => {
+    onSave(element.textContent.trim());
+    saveSheetData();
+  });
+}
+
+function statusClass(label) {
+  if (label.includes("ไม่")) return "black";
+  if (label.includes("มากกว่า")) return "purple";
+  if (label.includes("3")) return "green";
+  if (label.includes("2")) return "red";
+  return "blue";
+}
+
+function renderEditableText(cell, value, onSave) {
+  cell.textContent = value;
+  setEditable(cell, onSave);
+}
+
+function renderEditableLink(cell, value, onSave) {
+  const linkText = document.createElement("span");
+  linkText.className = "link-text";
+  linkText.textContent = value;
+  cell.append(linkText);
+  setEditable(cell, (text) => {
+    onSave(text);
+    cell.textContent = text;
+    cell.classList.add("editable-cell");
+    cell.contentEditable = "true";
+  });
+}
+
+function renderEditableStatus(cell, status, onSave) {
+  const pill = document.createElement("span");
+  pill.className = `pill ${status.className}`;
+  pill.textContent = status.label;
+  cell.append(pill);
+  setEditable(pill, (text) => {
+    const nextStatus = { label: text, className: statusClass(text) };
+    onSave(nextStatus);
+    pill.className = `pill ${nextStatus.className}`;
+    pill.textContent = text;
+  });
+}
+
 function renderHeader() {
   const headerRow = document.createElement("tr");
   const corner = document.createElement("th");
@@ -181,10 +291,12 @@ function renderHeader() {
   corner.textContent = "1";
   headerRow.append(corner);
 
-  columns.forEach((column) => {
+  columns.forEach((column, index) => {
     const th = document.createElement("th");
     th.className = column.className;
-    th.textContent = column.title;
+    renderEditableText(th, headerTitles[index], (text) => {
+      headerTitles[index] = text;
+    });
     headerRow.append(th);
   });
 
@@ -192,7 +304,8 @@ function renderHeader() {
 }
 
 function renderRows() {
-  const rows = names.map((name, index) => {
+  const currentSheet = sheetData[activeMonth];
+  const rows = currentSheet.names.map((name, index) => {
     const tr = document.createElement("tr");
     const rowNum = document.createElement("td");
     rowNum.className = "row-num";
@@ -201,30 +314,31 @@ function renderRows() {
 
     const nameCell = document.createElement("td");
     nameCell.className = "name-col";
-    nameCell.textContent = name;
+    renderEditableText(nameCell, name, (text) => {
+      currentSheet.names[index] = text;
+    });
     tr.append(nameCell);
 
     const urlCell = document.createElement("td");
     urlCell.className = "url-col";
-    const link = document.createElement("a");
-    link.href = "#";
-    link.textContent = `https://shorturl.asia/${shortCode(index, activeMonth)}`;
-    urlCell.append(link);
+    renderEditableLink(urlCell, currentSheet.links[index], (text) => {
+      currentSheet.links[index] = text;
+    });
     tr.append(urlCell);
 
     const countCell = document.createElement("td");
     countCell.className = "count-col";
-    const status = statusCycle[index];
-    const pill = document.createElement("span");
-    pill.className = `pill ${status.className}`;
-    pill.textContent = status.label;
-    countCell.append(pill);
+    renderEditableStatus(countCell, currentSheet.statuses[index], (nextStatus) => {
+      currentSheet.statuses[index] = nextStatus;
+    });
     tr.append(countCell);
 
-    baseRows[index].forEach((value, colIndex) => {
+    currentSheet.rows[index].forEach((value, colIndex) => {
       const td = document.createElement("td");
       td.className = colIndex === 10 ? "empty-col" : "metric-col";
-      td.textContent = monthAdjustedValue(value, index, colIndex, activeMonth);
+      renderEditableText(td, value, (text) => {
+        currentSheet.rows[index][colIndex] = text;
+      });
       if (index === 10 && colIndex === 10) td.classList.add("selected-cell");
       tr.append(td);
     });
@@ -242,10 +356,13 @@ function renderRows() {
     const td = document.createElement("td");
     td.className = column.className.replace(/h-[a-z0-9-]+/g, "").trim();
     if (index === 2) {
-      const pill = document.createElement("span");
-      pill.className = "pill black";
-      pill.textContent = "";
-      td.append(pill);
+      renderEditableStatus(td, { label: currentSheet.blankRow[index], className: "black" }, (nextStatus) => {
+        currentSheet.blankRow[index] = nextStatus.label;
+      });
+    } else {
+      renderEditableText(td, currentSheet.blankRow[index], (text) => {
+        currentSheet.blankRow[index] = text;
+      });
     }
     blankRow.append(td);
   });
@@ -260,21 +377,31 @@ function renderRows() {
 
   const totalLabel = document.createElement("td");
   totalLabel.className = "name-col total-label";
-  totalLabel.textContent = "Total";
+  renderEditableText(totalLabel, currentSheet.totalLabel ?? "Total", (text) => {
+    currentSheet.totalLabel = text;
+  });
   totalRow.append(totalLabel);
 
   const blankUrl = document.createElement("td");
   blankUrl.className = "url-col";
+  renderEditableText(blankUrl, currentSheet.totalUrl ?? "", (text) => {
+    currentSheet.totalUrl = text;
+  });
   totalRow.append(blankUrl);
 
   const blankCount = document.createElement("td");
   blankCount.className = "count-col";
+  renderEditableText(blankCount, currentSheet.totalCount ?? "", (text) => {
+    currentSheet.totalCount = text;
+  });
   totalRow.append(blankCount);
 
-  totals.forEach((value, index) => {
+  currentSheet.totals.forEach((value, index) => {
     const td = document.createElement("td");
     td.className = index === 10 ? "empty-col" : "metric-col";
-    td.textContent = value;
+    renderEditableText(td, value, (text) => {
+      currentSheet.totals[index] = text;
+    });
     totalRow.append(td);
   });
 
@@ -290,6 +417,7 @@ function renderTabs() {
     button.textContent = month;
     button.addEventListener("click", () => {
       activeMonth = index;
+      renderHeader();
       renderRows();
       renderTabs();
     });
