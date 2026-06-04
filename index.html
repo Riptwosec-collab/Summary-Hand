@@ -13,7 +13,29 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="sheet-app" aria-label="ตารางแบบประเมินรายเดือน">
+    <main class="sheet-app locked" id="sheetApp" aria-label="ตารางแบบประเมินรายเดือน">
+      <section class="admin-login" id="adminLogin">
+        <form class="login-card" id="loginForm">
+          <p class="eyebrow">Admin only</p>
+          <h1>สรุปแบบประเมินการล้างมือ</h1>
+          <p>กรอกรหัสผู้ดูแลเพื่อดูข้อมูลสรุปตามรายชื่อและ Moment</p>
+          <label>
+            รหัสผู้ดูแล
+            <input id="adminPassword" name="password" type="password" autocomplete="current-password" required />
+          </label>
+          <button type="submit">เข้าสู่ระบบ</button>
+          <p class="login-error" id="loginError"></p>
+        </form>
+      </section>
+
+      <header class="summary-toolbar" id="summaryToolbar">
+        <div>
+          <h1>สรุปแบบประเมินรายเดือน</h1>
+          <p id="summaryStatus">รอโหลดข้อมูล</p>
+        </div>
+        <button type="button" id="logoutButton">ออกจากระบบ</button>
+      </header>
+
       <section class="sheet-frame">
         <div class="sheet-scroll">
           <table class="assessment-table" id="assessmentTable">
