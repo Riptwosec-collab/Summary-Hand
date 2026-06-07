@@ -11,6 +11,7 @@ function repoConfig() {
 function jsonResponse(response, statusCode, body, extraHeaders = {}) {
   response.statusCode = statusCode;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
+  response.setHeader("Cache-Control", "no-store");
   Object.entries(extraHeaders).forEach(([key, value]) => response.setHeader(key, value));
   response.end(JSON.stringify(body));
 }
@@ -19,7 +20,7 @@ function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Form-Token",
+    "Access-Control-Allow-Headers": "Content-Type, X-Form-Token, X-Admin-Password",
   };
 }
 
@@ -57,13 +58,13 @@ async function readSubmissions() {
   };
 }
 
-async function writeSubmissions(submissions, sha) {
+async function writeSubmissions(submissions, sha, message = "Record hand hygiene assessment submission") {
   const { repo, branch } = repoConfig();
   const content = Buffer.from(JSON.stringify(submissions, null, 2)).toString("base64");
   return githubRequest(`/repos/${repo}/contents/${STORE_PATH}`, {
     method: "PUT",
     body: JSON.stringify({
-      message: "Record hand hygiene assessment submission",
+      message,
       content,
       sha,
       branch,
@@ -83,4 +84,5 @@ module.exports = {
   corsHeaders,
   jsonResponse,
   readSubmissions,
+  writeSubmissions,
 };
