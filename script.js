@@ -53,9 +53,9 @@ async function fetchSummary() {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Admin-Password": adminPassword,
     },
     body: JSON.stringify({
+      password: adminPassword,
       month: activeMonth + 1,
       year: new Date().getFullYear(),
     }),
